@@ -1,0 +1,297 @@
+﻿
+    <header>
+        <!-- Top Bar with Promotions and Language/Currency Selectors -->
+        <div class="top-bar">
+            <div class="container-fluid px-4">
+                <div class="row py-2">
+                    <div class="col-md-8 d-none d-md-flex align-items-center">
+                        <span class="top-bar-text promo-text">
+                            <i class="fas fa-bolt me-1"></i> Giảm giá 30% cho đơn hàng đầu tiên!
+                        </span>
+                        <span class="top-bar-text">
+                            <i class="fas fa-truck me-1"></i> Miễn phí vận chuyển cho đơn hàng trên 1.000.000đ
+                        </span>
+                        <span class="top-bar-text">
+                            <i class="fas fa-headset me-1"></i> Hỗ trợ 24/7: 1900-1234
+                        </span>
+                    </div>
+                    <div class="col-md-4 d-flex justify-content-center justify-content-md-end align-items-center">
+                        <select class="language-selector" id="languageSelector">
+                            <option value="vi">Tiếng Việt</option>
+                            <option value="en">English</option>
+                        </select>
+                        <select class="currency-selector" id="currencySelector">
+                            <option value="vnd">VND</option>
+                            <option value="usd">USD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation Header -->
+        <nav class="navbar navbar-expand-lg navbar-light py-3 main-header">
+            <div class="container-fluid px-4">
+                <!-- Logo -->
+                <a class="navbar-brand logo-container" href="/">
+                    <i class="fas fa-tshirt logo-icon"></i>
+                    <span class="brand-name">FASHION STUDIO</span>
+                </a>
+
+                <!-- Mobile Toggle Button -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                    aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navigation Items -->
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/">Trang chủ</a>
+                        </li>
+
+                        <!-- Men's Clothing -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="menDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Nam
+                            </a>
+                            <ul class="dropdown-menu animate__animated animate__fadeIn" aria-labelledby="menDropdown">
+                                <li><a class="dropdown-item" href="/products?category=men-tshirt"><i
+                                            class="fas fa-tshirt me-2 text-primary"></i>Áo thun</a></li>
+                                <li><a class="dropdown-item" href="/products?category=men-shirt"><i
+                                            class="fas fa-user-tie me-2 text-primary"></i>Áo sơmi</a></li>
+                                <li><a class="dropdown-item" href="/products?category=men-pants"><i
+                                            class="fas fa-socks me-2 text-primary"></i>Quần</a></li>
+                                <li><a class="dropdown-item" href="/products?category=men-jeans"><i
+                                            class="fas fa-stream me-2 text-primary"></i>Quần jeans</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/products?category=men"><i
+                                            class="fas fa-male me-2 text-primary"></i>Tất cả sản phẩm Nam</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Women's Clothing -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="womenDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Nữ
+                            </a>
+                            <ul class="dropdown-menu animate__animated animate__fadeIn" aria-labelledby="womenDropdown">
+                                <li><a class="dropdown-item" href="/products?category=women-dress"><i
+                                            class="fas fa-female me-2 text-danger"></i>Đầm</a></li>
+                                <li><a class="dropdown-item" href="/products?category=women-tshirt"><i
+                                            class="fas fa-tshirt me-2 text-danger"></i>Áo thun</a></li>
+                                <li><a class="dropdown-item" href="/products?category=women-blouse"><i
+                                            class="fas fa-user-tie me-2 text-danger"></i>Áo kiểu</a></li>
+                                <li><a class="dropdown-item" href="/products?category=women-jeans"><i
+                                            class="fas fa-stream me-2 text-danger"></i>Quần jeans</a></li>
+                                <li><a class="dropdown-item" href="/products?category=women-skirt"><i
+                                            class="fas fa-ruler-vertical me-2 text-danger"></i>Chân váy</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/products?category=women"><i
+                                            class="fas fa-female me-2 text-danger"></i>Tất cả sản phẩm Nữ</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Kids' Clothing -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="kidsDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Trẻ em
+                            </a>
+                            <ul class="dropdown-menu animate__animated animate__fadeIn" aria-labelledby="kidsDropdown">
+                                <li><a class="dropdown-item" href="/products?category=kids-boys"><i
+                                            class="fas fa-child me-2 text-success"></i>Bé trai</a></li>
+                                <li><a class="dropdown-item" href="/products?category=kids-girls"><i
+                                            class="fas fa-child me-2 text-warning"></i>Bé gái</a></li>
+                                <li><a class="dropdown-item" href="/products?category=kids-shoes"><i
+                                            class="fas fa-shoe-prints me-2 text-success"></i>Giày dép</a></li>
+                                <li><a class="dropdown-item" href="/products?category=kids-accessories"><i
+                                            class="fas fa-hat-wizard me-2 text-warning"></i>Phụ kiện</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/products?category=kids"><i
+                                            class="fas fa-child me-2 text-info"></i>Tất cả sản phẩm Trẻ em</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Accessories -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="accessoriesDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Phụ kiện
+                            </a>
+                            <ul class="dropdown-menu animate__animated animate__fadeIn"
+                                aria-labelledby="accessoriesDropdown">
+                                <li><a class="dropdown-item" href="/products?category=accessories-bags"><i
+                                            class="fas fa-shopping-bag me-2 text-secondary"></i>Túi xách</a></li>
+                                <li><a class="dropdown-item" href="/products?category=accessories-shoes"><i
+                                            class="fas fa-shoe-prints me-2 text-secondary"></i>Giày dép</a></li>
+                                <li><a class="dropdown-item" href="/products?category=accessories-jewelry"><i
+                                            class="fas fa-gem me-2 text-secondary"></i>Trang sức</a></li>
+                                <li><a class="dropdown-item" href="/products?category=accessories-hats"><i
+                                            class="fas fa-hat-cowboy me-2 text-secondary"></i>Mũ nón</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/products?category=accessories"><i
+                                            class="fas fa-shopping-bag me-2 text-secondary"></i>Tất cả phụ kiện</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Sales -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/sale" style="color: #d76d77; font-weight: 600;">
+                                <i class="fas fa-fire me-1"></i>Khuyến mãi
+                            </a>
+                        </li>
+
+                        <!-- About -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about">Về chúng tôi</a>
+                        </li>
+                    </ul>
+
+                    <!-- Search Form -->
+                    <form class="search-form mb-3 mb-lg-0">
+                        <input type="search" class="form-control search-input" placeholder="Tìm kiếm sản phẩm..."
+                            aria-label="Search">
+                        <button type="submit" class="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+
+                    <!-- User Action Icons -->
+                    <div class="user-actions">
+                        <!-- User Account -->
+                        <div class="dropdown">
+                            <div class="action-icon" id="userDropdown" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                <i class="fas fa-user"></i>
+                            </div>
+
+                            <!-- Guest User Dropdown -->
+                            <div class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn user-dropdown"
+                                aria-labelledby="userDropdown" id="guestUserMenu">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-user-circle fa-3x text-secondary mb-2"></i>
+                                    <p class="mb-0">Chào mừng bạn đến với Fashion Studio</p>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="/login" class="btn btn-primary">Đăng nhập</a>
+                                    <a href="/register" class="btn btn-outline-secondary">Đăng ký</a>
+                                </div>
+                            </div>
+
+                            <!-- Customer User Dropdown (hidden by default) -->
+                            <div class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn user-dropdown d-none"
+                                aria-labelledby="userDropdown" id="customerUserMenu">
+                                <div class="user-greeting">Xin chào, <span class="user-name">Người dùng</span>!</div>
+                                <a href="/account/profile" class="dropdown-user-item">
+                                    <i class="fas fa-user-circle"></i> Thông tin tài khoản
+                                </a>
+                                <a href="/account/orders" class="dropdown-user-item">
+                                    <i class="fas fa-shopping-basket"></i> Đơn hàng của tôi
+                                </a>
+                                <a href="/account/wishlist" class="dropdown-user-item">
+                                    <i class="fas fa-heart"></i> Sản phẩm yêu thích
+                                </a>
+                                <a href="/account/addresses" class="dropdown-user-item">
+                                    <i class="fas fa-map-marker-alt"></i> Địa chỉ của tôi
+                                </a>
+                                <hr>
+                                <a href="/logout" class="dropdown-user-item">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a>
+                            </div>
+
+                            <!-- Admin User Dropdown (hidden by default) -->
+                            <div class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn user-dropdown d-none"
+                                aria-labelledby="userDropdown" id="adminUserMenu">
+                                <div class="user-greeting">Xin chào, <span class="user-name">Admin</span>!</div>
+                                <a href="/admin/dashboard" class="dropdown-user-item">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                                <a href="/admin/staff" class="dropdown-user-item">
+                                    <i class="fas fa-users-cog"></i> Quản lý nhân viên
+                                </a>
+                                <a href="/admin/reports" class="dropdown-user-item">
+                                    <i class="fas fa-chart-bar"></i> Báo cáo doanh số
+                                </a>
+                                <a href="/admin/settings" class="dropdown-user-item">
+                                    <i class="fas fa-cogs"></i> Cài đặt hệ thống
+                                </a>
+                                <hr>
+                                <a href="/logout" class="dropdown-user-item">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a>
+                            </div>
+
+                            <!-- Sale Manager User Dropdown (hidden by default) -->
+                            <div class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn user-dropdown d-none"
+                                aria-labelledby="userDropdown" id="saleManagerUserMenu">
+                                <div class="user-greeting">Xin chào, <span class="user-name">Sale Manager</span>!</div>
+                                <a href="/sale-manager/orders" class="dropdown-user-item">
+                                    <i class="fas fa-clipboard-list"></i> Quản lý đơn hàng
+                                </a>
+                                <a href="/sale-manager/reports" class="dropdown-user-item">
+                                    <i class="fas fa-chart-line"></i> Báo cáo bán hàng
+                                </a>
+                                <a href="/sale-manager/customers" class="dropdown-user-item">
+                                    <i class="fas fa-users"></i> Khách hàng
+                                </a>
+                                <hr>
+                                <a href="/logout" class="dropdown-user-item">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a>
+                            </div>
+
+                            <!-- Manager User Dropdown (hidden by default) -->
+                            <div class="dropdown-menu dropdown-menu-end animate__animated animate__fadeIn user-dropdown d-none"
+                                aria-labelledby="userDropdown" id="managerUserMenu">
+                                <div class="user-greeting">Xin chào, <span class="user-name">Manager</span>!</div>
+                                <a href="/manager/products" class="dropdown-user-item">
+                                    <i class="fas fa-tshirt"></i> Quản lý sản phẩm
+                                </a>
+                                <a href="/manager/customers" class="dropdown-user-item">
+                                    <i class="fas fa-users"></i> Quản lý khách hàng
+                                </a>
+                                <a href="/manager/suppliers" class="dropdown-user-item">
+                                    <i class="fas fa-truck"></i> Quản lý nhà cung cấp
+                                </a>
+                                <a href="/manager/inventory" class="dropdown-user-item">
+                                    <i class="fas fa-boxes"></i> Quản lý kho
+                                </a>
+                                <hr>
+                                <a href="/logout" class="dropdown-user-item">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Wishlist -->
+                        <a href="/wishlist" class="action-icon position-relative">
+                            <i class="fas fa-heart"></i>
+                            <span class="badge-count wishlist-count" id="wishlistCount">0</span>
+                        </a>
+
+                        <!-- Shopping Cart -->
+                        <a href="/cart" class="action-icon position-relative">
+                            <i class="fas fa-shopping-bag"></i>
+                            <span class="badge-count cart-count" id="cartCount">0</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    
+
