@@ -17,9 +17,9 @@ public partial class User
 
     public string? Address { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public bool? Status { get; set; }
+    public bool Status { get; set; }
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
