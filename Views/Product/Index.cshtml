@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<WebApplication1.Models.Product>
+@using System.Globalization
 @{
     ViewData["Title"] = "Manage Products";
     int pageNumber = ViewBag.PageNumber;
@@ -58,7 +59,7 @@
                                 </td>
                                 <td>@product.Category?.CategoryName</td>
                                 <td>@(product.Supplier?.SupplierName ?? "N/A")</td>
-                                <td>@product.BasePrice.ToString("C")</td>
+                                <td>@product.BasePrice.ToString("C0", new CultureInfo("vi-VN"))</td>
                                 <td>@(product.DiscountPercent.HasValue ? product.DiscountPercent.Value.ToString("P") : "No Discount")</td>
                                 <td>@(string.IsNullOrEmpty(product.Description) ? "No Description" : product.Description)</td>
                                 <td>
