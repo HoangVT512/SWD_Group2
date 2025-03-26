@@ -1,0 +1,105 @@
+﻿@model WebApplication1.Models.ViewModels.ProductViewModel
+
+@{
+    ViewData["Title"] = "Add New Product";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Add New Product</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AddProduct" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="ProductName" class="control-label">Product Name</label>
+                                    <input asp-for="ProductName" class="form-control" />
+                                    <span asp-validation-for="ProductName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="CategoryId" class="control-label">Category</label>
+                                    <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories"></select>
+                                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="SupplierId" class="control-label">Supplier</label>
+                                    <select asp-for="SupplierId" class="form-control" asp-items="ViewBag.Suppliers"></select>
+                                    <span asp-validation-for="SupplierId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="BasePrice" class="control-label">Price</label>
+                                    <input asp-for="BasePrice" class="form-control" type="number" step="0.01" />
+                                    <span asp-validation-for="BasePrice" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="DiscountPercent" class="control-label">Discount (%)</label>
+                                    <input asp-for="DiscountPercent" class="form-control" type="number" step="0.01" />
+                                    <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Status" class="control-label">Status</label>
+                                    <select asp-for="Status" class="form-control">
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input asp-for="Featured" class="form-check-input" type="checkbox" value="true" />
+                                <label asp-for="Featured" class="form-check-label">Featured</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Description" class="control-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mt-4 d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Add Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -19,7 +19,7 @@ public partial class Product
 
     public decimal? DiscountPercent { get; set; }
 
-    public bool? Featured { get; set; }
+    public bool Featured { get; set; } = false;
 
     public DateTime? CreatedAt { get; set; }
 
