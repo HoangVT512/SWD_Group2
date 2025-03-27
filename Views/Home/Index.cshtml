@@ -1,8 +1,506 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model WebApplication1.ViewModel.HomeViewModel
+@using WebApplication1.Extensions
+@{
+	ViewData["Title"] = "Home Page";
 }
 
-<div >
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Fashion Studio - Thời trang cao cấp</title>
+
+	<!-- Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<!-- Font Awesome Icons -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+	<!-- Google Fonts -->
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+	<!-- Animate.css for animations -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+	<!-- Hover.css for hover effects -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.3.1/css/hover-min.css">
+
+	<!-- Swiper CSS for sliders -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+
+	<!-- styles.css -->
+	<link rel="stylesheet" href="~/css/style.css">
+
+	<!-- main.js -->
+	<script src="~/js/main.js" defer></script>
+
+	<style>
+		/* Base Styles */
+		body {
+			font-family: 'Poppins', sans-serif;
+			margin: 0;
+			padding: 0;
+			color: #333;
+			overflow-x: hidden;
+		}
+
+		/* Container width adjustment */
+		.container-wide {
+			width: 100%;
+			max-width: 1400px;
+			margin-right: auto;
+			margin-left: auto;
+			padding-right: 15px;
+			padding-left: 15px;
+		}
+
+
+
+		/* Smooth scroll behavior */
+		html {
+			scroll-behavior: smooth;
+		}
+
+		/* Main content styles */
+		#main-content {
+			min-height: 500px;
+		}
+
+		/* Loading placeholder for components */
+		.component-placeholder {
+			padding: 20px;
+			text-align: center;
+			background-color: #f8f9fa;
+			border-radius: 5px;
+			margin: 10px 0;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- Main Content -->
+	<!-- Hero Slider Section -->
+	<section class="hero-slider-section">
+		<div class="swiper hero-slider">
+			<div class="swiper-wrapper">
+				<!-- Slide 1 -->
+				<div class="swiper-slide">
+					<div class="hero-slide"
+						 style="background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');">
+						<div class="hero-content">
+							<h2 class="animate__animated animate__fadeInDown">Bộ Sưu Tập Mùa Hè 2025</h2>
+							<p class="animate__animated animate__fadeInUp animate__delay-1s">
+								Khám phá các thiết kế mới nhất với ưu đãi
+								đặc biệt giảm giá lên đến 30%
+							</p>
+							<div class="hero-buttons animate__animated animate__fadeInUp animate__delay-2s">
+								<a href="/collections/summer" class="btn-primary">Khám phá ngay</a>
+								<a href="/sale" class="btn-outline">Xem khuyến mãi</a>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+
+
+			</div>
+	</section>
+
+	<!-- Featured Categories Section -->
+	<section class="featured-categories-section py-5">
+		<div class="container-wide">
+			<div class="section-heading text-center mb-5">
+				<h2>Danh Mục Nổi Bật</h2>
+				<p class="text-muted">Khám phá bộ sưu tập phong phú của chúng tôi</p>
+			</div>
+
+			<div class="row g-4">
+				@foreach (var category in Model.FeaturedCategories)
+				{
+					<div class="col-6 col-md-3">
+						<div class="category-card">
+							<div class="category-img-container">
+								@{
+									// Get a product image from this category if available
+									var categoryImage = "https://via.placeholder.com/300x400";
+									if (category.Products.Any())
+									{
+										var firstProduct = category.Products.FirstOrDefault();
+										if (firstProduct?.ProductImages.Any() == true) 
+												{
+											categoryImage = firstProduct.ProductImages.FirstOrDefault(i => i.IsPrimary == true)?.ImageUrl ??
+											firstProduct.ProductImages.FirstOrDefault()?.ImageUrl ??
+											categoryImage;
+										}
+									}
+								}
+								<img src="@categoryImage" alt="@category.CategoryName" class="img-fluid">
+								<div class="category-overlay"></div>
+							</div>
+							<div class="category-content">
+								<h3>@category.CategoryName</h3>
+								<a href="/Home/Search?query=&category=@category.CategoryId" class="btn-category">Xem ngay <i class="fas fa-arrow-right"></i></a>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+
+	<!-- Featured Products Section -->
+	<section class="featured-products-section py-5">
+		<div class="container-wide">
+			<div class="section-heading text-center mb-5">
+				<h2>Sản Phẩm Nổi Bật</h2>
+				<p class="text-muted">Những thiết kế được yêu thích nhất</p>
+			</div>
+
+			<div class="row g-4">
+				@foreach (var product in Model.FeaturedProducts)
+				{
+					<div class="col-6 col-md-3">
+						<div class="product-card">
+							@if (product.DiscountPercent > 0)
+							{
+								<div class="product-badge">-@(product.DiscountPercent)%</div>
+							}
+							else if (product.Featured == true)
+							{
+								<div class="product-badge hot">Hot</div>
+							}
+							<div class="wishlist-icon">
+								<i class="far fa-heart"></i>
+							</div>
+							<div class="product-img-container">
+								@{
+									var productImage = product.ProductImages.FirstOrDefault(i => i.IsPrimary == true)?.ImageUrl ??
+									product.ProductImages.FirstOrDefault()?.ImageUrl ??
+									"https://via.placeholder.com/250x300";
+								}
+								<img src="@productImage" alt="@product.ProductName" class="img-fluid">
+								<div class="product-actions">
+									<button class="btn-add-to-cart" data-product-id="@product.ProductId">Thêm vào giỏ <i class="fas fa-shopping-cart"></i></button>
+									<button class="btn-quick-view" data-product-id="@product.ProductId"><i class="fas fa-eye"></i></button>
+								</div>
+							</div>
+							<div class="product-info">
+								<h3 class="product-title">@product.ProductName</h3>
+								<div class="product-rating">
+									@{
+										var rating = product.Reviews.Any() ? product.Reviews.Average(r => r.Rating ?? 0) : 0;
+										var fullStars = (int)Math.Floor(rating);
+										var hasHalfStar = rating - fullStars >= 0.5;
+									}
+
+									@for (int i = 1; i <= 5; i++)
+									{
+										if (i <= fullStars)
+										{
+											<i class="fas fa-star"></i>
+										}
+										else if (i == fullStars + 1 && hasHalfStar)
+										{
+											<i class="fas fa-star-half-alt"></i>
+										}
+										else
+										{
+											<i class="far fa-star"></i>
+										}
+									}
+									<span>(@product.Reviews.Count)</span>
+								</div>
+								<div class="product-price">
+									@{
+										decimal discountedPrice = product.BasePrice;
+										if (product.DiscountPercent.HasValue && product.DiscountPercent.Value > 0)
+										{
+											discountedPrice = product.BasePrice - (product.BasePrice * product.DiscountPercent.Value / 100);
+										}
+									}
+									<span class="new-price">@string.Format("{0:N0}đ", discountedPrice)</span>
+									@if (product.DiscountPercent.HasValue && product.DiscountPercent.Value > 0)
+									{
+										<span class="old-price">@string.Format("{0:N0}đ", product.BasePrice)</span>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<div class="text-center mt-5">
+				<a href="/products" class="btn-view-more">Xem tất cả sản phẩm <i class="fas fa-arrow-right"></i></a>
+			</div>
+		</div>
+	</section>
+
+	<!-- New Products Section -->
+	<section class="new-products-section py-5">
+		<div class="container-wide">
+			<div class="section-heading text-center mb-5">
+				<h2>Sản Phẩm Mới Nhất</h2>
+				<p class="text-muted">Những thiết kế vừa ra mắt trong tuần này</p>
+			</div>
+
+			<div class="swiper new-products-slider">
+				<div class="swiper-wrapper">
+					@foreach (var product in Model.NewProducts)
+					{
+						<div class="swiper-slide">
+							<div class="product-card">
+								<div class="product-badge new">Mới</div>
+								<div class="wishlist-icon">
+									<i class="far fa-heart"></i>
+								</div>
+								<div class="product-img-container">
+									@{
+										var productImage = product.ProductImages.FirstOrDefault(i => i.IsPrimary == true)?.ImageUrl ??
+										product.ProductImages.FirstOrDefault()?.ImageUrl ??
+										"https://via.placeholder.com/250x300";
+									}
+									<img src="@productImage" alt="@product.ProductName" class="img-fluid">
+									<div class="product-actions">
+										<button class="btn-add-to-cart" data-product-id="@product.ProductId">Thêm vào giỏ <i class="fas fa-shopping-cart"></i></button>
+										<button class="btn-quick-view" data-product-id="@product.ProductId"><i class="fas fa-eye"></i></button>
+									</div>
+								</div>
+								<div class="product-info">
+									<h3 class="product-title">@product.ProductName</h3>
+									<div class="product-rating">
+										@{
+											var rating = product.Reviews.Any() ? product.Reviews.Average(r => r.Rating ?? 0) : 0;
+											var fullStars = (int)Math.Floor(rating);
+											var hasHalfStar = rating - fullStars >= 0.5;
+										}
+
+										@for (int i = 1; i <= 5; i++)
+										{
+											if (i <= fullStars)
+											{
+												<i class="fas fa-star"></i>
+											}
+											else if (i == fullStars + 1 && hasHalfStar)
+											{
+												<i class="fas fa-star-half-alt"></i>
+											}
+											else
+											{
+												<i class="far fa-star"></i>
+											}
+										}
+										<span>(@product.Reviews.Count)</span>
+									</div>
+									<div class="product-price">
+										@{
+											decimal discountedPrice = product.BasePrice;
+											if (product.DiscountPercent.HasValue && product.DiscountPercent.Value > 0)
+											{
+												discountedPrice = product.BasePrice - (product.BasePrice * product.DiscountPercent.Value / 100);
+											}
+										}
+										<span class="new-price">@string.Format("{0:N0}đ", discountedPrice)</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+				</div>
+
+				<!-- Slider controls -->
+				<div class="swiper-button-next new-products-next"></div>
+				<div class="swiper-button-prev new-products-prev"></div>
+			</div>
+
+			<div class="text-center mt-5">
+				<a href="/products?filter=new" class="btn-view-more">
+					Xem tất cả sản phẩm mới <i class="fas fa-arrow-right"></i>
+				</a>
+			</div>
+		</div>
+	</section>
+
+
+	<!-- Collections by Theme Section -->
+	<section class="theme-collections-section py-5">
+		<div class="container-wide">
+			<div class="section-heading text-center mb-5">
+				<h2>Bộ Sưu Tập Theo Chủ Đề</h2>
+				<p class="text-muted">Khám phá phong cách phù hợp với từng không gian và dịp</p>
+			</div>
+
+			<div class="collections-grid">
+				@foreach (var collection in Model.ThemeCollections)
+				{
+					var collectionClass = collection.Size == "large" ? "collection-card-large" :
+					collection.Size == "wide" ? "collection-card-wide" : "";
+
+					<div class="collection-card @collectionClass">
+						<div class="collection-image" style="background-image: url('@collection.ImageUrl');">
+							<div class="collection-overlay"></div>
+							<div class="collection-content">
+								@if (!string.IsNullOrEmpty(collection.BadgeText))
+								{
+									<div class="collection-badge">@collection.BadgeText</div>
+								}
+								<h3>@collection.Name</h3>
+								<p>@collection.Description</p>
+								<a href="@collection.Url" class="btn-collection">Khám phá ngay <i class="fas fa-arrow-right"></i></a>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+
+			<div class="explore-collections text-center mt-5">
+				<a href="/collections" class="btn-view-all-collections">Khám phá tất cả bộ sưu tập</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- jQuery, Bootstrap and other scripts -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+	<script>
+		// Initialize Swiper for Hero Slider
+		document.addEventListener('DOMContentLoaded', function() {
+			var heroSwiper = new Swiper('.hero-slider', {
+				slidesPerView: 1,
+				spaceBetween: 0,
+				loop: true,
+				autoplay: {
+					delay: 5000,
+					disableOnInteraction: false,
+				},
+				pagination: {
+					el: '.swiper-pagination',
+					clickable: true,
+				},
+				navigation: {
+					nextEl: '.swiper-button-next',
+					prevEl: '.swiper-button-prev',
+				},
+			});
+
+			// Initialize Swiper for New Products
+			var newProductsSwiper = new Swiper('.new-products-slider', {
+				slidesPerView: 1,
+				spaceBetween: 20,
+				loop: true,
+				navigation: {
+					nextEl: '.new-products-next',
+					prevEl: '.new-products-prev',
+				},
+				breakpoints: {
+					576: {
+						slidesPerView: 2,
+					},
+					768: {
+						slidesPerView: 3,
+					},
+					992: {
+						slidesPerView: 4,
+					},
+					1200: {
+						slidesPerView: 5,
+					},
+				}
+			});
+
+			// Flash Sale Countdown
+			function updateCountdown() {
+				// Set the date we're counting down to (3 days from now)
+				var countDownDate = new Date();
+				countDownDate.setDate(countDownDate.getDate() + 3);
+
+				// Update the countdown every 1 second
+				var x = setInterval(function() {
+					// Get the current date and time
+					var now = new Date().getTime();
+
+					// Find the distance between now and the countdown date
+					var distance = countDownDate - now;
+
+					// Time calculations for days, hours, minutes, and seconds
+					var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+					var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+					var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+					var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+					// Output the result
+					document.getElementById("countdown-days").innerHTML = days < 10 ? "0" + days : days;
+					document.getElementById("countdown-hours").innerHTML = hours < 10 ? "0" + hours : hours;
+					document.getElementById("countdown-minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+					document.getElementById("countdown-seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+
+					// If the countdown is over
+					if (distance < 0) {
+						clearInterval(x);
+						document.getElementById("countdown-days").innerHTML = "00";
+						document.getElementById("countdown-hours").innerHTML = "00";
+						document.getElementById("countdown-minutes").innerHTML = "00";
+						document.getElementById("countdown-seconds").innerHTML = "00";
+					}
+				}, 1000);
+			}
+
+			updateCountdown();
+
+			// Wishlist toggle functionality
+			document.querySelectorAll('.wishlist-icon').forEach(icon => {
+				icon.addEventListener('click', function() {
+					const heart = this.querySelector('i');
+					heart.classList.toggle('far');
+					heart.classList.toggle('fas');
+					heart.classList.toggle('text-danger');
+				});
+			});
+
+					  const quickViewButtons = document.querySelectorAll(".btn-quick-view");
+
+		quickViewButtons.forEach((button) => {
+			button.addEventListener("click", function (e) {
+				e.preventDefault(); // Prevent default behavior if button is inside a form
+
+				// Get product ID from data attribute
+				const productId = this.getAttribute("data-product-id");
+
+				// Navigate to product detail page (for the route pattern "Detail/{id}")
+				window.location.href = `/ProductDetail/${productId}`;
+
+				// OR if you used the "Home/Detail/{id}" pattern:
+				// window.location.href = `/Home/Detail/${productId}`;
+			});
+		});
+
+
+			// Add to cart functionality
+			document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+				button.addEventListener('click', function() {
+					const productId = this.getAttribute('data-product-id');
+					// Here you would typically add the product to cart via AJAX
+					console.log(`Add to cart product ID: ${productId}`);
+					// Implement cart addition logic with animation feedback
+
+					// Visual feedback
+					const originalText = this.innerHTML;
+					this.innerHTML = 'Đã thêm <i class="fas fa-check"></i>';
+					this.classList.add('added');
+
+					setTimeout(() => {
+						this.innerHTML = originalText;
+						this.classList.remove('added');
+					}, 2000);
+				});
+			});
+		});
+	</script>
+</body>
+
+</html>

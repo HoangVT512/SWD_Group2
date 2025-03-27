@@ -1,0 +1,125 @@
+﻿@using WebApplication1.ViewModel
+@model SearchViewModel
+@{
+    ViewData["Title"] = "Search Products";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Search Products</h1>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="/Home/Search" class="row align-items-end">
+                <div class="col-md-6 mb-3">
+                    <label for="query" class="form-label">Product Name</label>
+                    <input type="text" class="form-control" id="query" name="query" 
+                           placeholder="Search by product name..." value="@Model.Query">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="categoryId" class="form-label">Category</label>
+                    <select class="form-select" id="categoryId" name="categoryId">
+                        <option value="">All Categories</option>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category.CategoryId" selected="@(Model.SelectedCategoryId == category.CategoryId)">
+                                @category.CategoryName
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-3">
+                @if (!string.IsNullOrEmpty(Model.Query) || Model.SelectedCategoryId.HasValue)
+                {
+                    <text>Search Results</text>
+                }
+                else
+                {
+                    <text>All Products</text>
+                }
+            </h2>
+
+            @if (Model.SearchResults.Any())
+            {
+                <p>Found @Model.SearchResults.Count product(s)</p>
+
+                <div class="row">
+                    @foreach (var product in Model.SearchResults)
+                    {
+                        <div class="col-md-3 col-sm-6 mb-4">
+                            <div class="card product-card h-100">
+                                <a href="/Detail/@product.ProductId">
+                                    <img src="@product.ImageUrl" class="card-img-top"
+                                         alt="@product.ProductName" style="height: 200px; object-fit: cover;">
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title product-title">
+                                        <a href="/Detail/@product.ProductId">@product.ProductName</a>
+                                    </h5>
+                                    <div class="product-price mb-2">
+                                        @if (product.DiscountPercent > 0)
+                                        {
+                                            <span class="original-price text-muted text-decoration-line-through me-2">
+                                                $@product.BasePrice.ToString("0.00")
+                                            </span>
+                                            <span class="discount-badge bg-danger text-white small py-1 px-2 rounded">
+                                                -@product.DiscountPercent%
+                                            </span>
+                                        }
+                                        <div class="current-price fw-bold mt-1">
+                                            $@product.DiscountedPrice.ToString("0.00")
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="/ProductDetail/@product.ProductId" class="btn btn-sm btn-outline-primary">
+                                            View Details
+                                        </a>
+                                        <button class="btn btn-sm btn-quick-view" data-product-id="@product.ProductId">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No products found.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Instant category filter
+        document.getElementById('categoryId').addEventListener('change', function() {
+            this.form.submit();
+        });
+        
+        // Quick view functionality (reuse your existing code)
+        document.querySelectorAll('.btn-quick-view').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                window.location.href = `/Detail/${productId}`;
+            });
+        });
+    </script>
+}

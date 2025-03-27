@@ -1,0 +1,1142 @@
+﻿@model WebApplication1.ViewModel.ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.ProductName;
+}
+@using System.Text.Json
+
+@{
+    var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        // We don't actually need ReferenceHandler.Preserve since we're using DTOs without circular references
+            };
+    var variantsJson = JsonSerializer.Serialize(Model.ProductVariantDtos, jsonOptions);
+}
+
+
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Model.ProductName - Clothing Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="~/css/product-detail.css">
+    <link rel="stylesheet" href="~/css/style.css">
+
+    <style>
+        .product-actions {
+            display: flex !important;
+            gap: 10px !important;
+            margin-top: 20px !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            border: 2px solid red !important; /* Temporary border to see the container */
+        }
+
+            .product-actions button {
+                display: inline-block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                min-width: 120px !important;
+                padding: 10px !important;
+            }
+
+        .btn-add-to-cart, .btn-buy-now, .btn-wishlist {
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-add-to-cart {
+            background-color: #ff4500;
+            color: white;
+            border: none;
+        }
+
+        .btn-buy-now {
+            background-color: #0066ff;
+            color: white;
+            border: none;
+        }
+
+        .btn-wishlist {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+        }
+
+        .btn-add-to-cart:hover, .btn-buy-now:hover {
+            opacity: 0.9;
+        }
+
+        .btn-wishlist:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header content will be loaded here -->
+    <div id="header-container"></div>
+
+    <!-- Breadcrumb Navigation -->
+    <div class="container-wide py-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="/category/@Model.CategoryId">@Model.CategoryName</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.ProductName</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Product Detail Main Section -->
+    <section class="product-detail-section py-4">
+        <div class="container-wide">
+            <div class="row">
+                <!-- Left Column: Product Gallery -->
+                <div class="col-md-6 mb-4">
+                    <div class="product-gallery">
+                        <!-- Main Product Image with Zoom Container -->
+                        <div class="main-image-container">
+                            <img id="main-product-image"
+                                 src="@Model.PrimaryImage"
+                                 class="img-fluid" alt="@Model.ProductName">
+
+                            <!-- Zoom Lens Indicator -->
+                            <div class="zoom-lens">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
+
+                            <!-- Fullscreen Button -->
+                            <button class="btn-fullscreen" id="open-gallery">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- Thumbnail Gallery Slider -->
+                        <div class="thumbnail-gallery mt-3">
+                            <div class="swiper thumbnail-slider">
+                                <div class="swiper-wrapper">
+                                    @foreach (var image in Model.ProductImages)
+                                    {
+                                        <div class="swiper-slide">
+                                            <div class="thumbnail @(image.IsPrimary == true ? "active" : "")"
+                                                 data-img-id="@image.ImageId"
+                                                 data-img-src="@image.ImageUrl">
+                                                <img src="@image.ImageUrl"
+                                                     class="img-fluid" alt="Thumbnail">
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Slider Navigation -->
+                                <div class="swiper-button-next thumbnail-button-next"></div>
+                                <div class="swiper-button-prev thumbnail-button-prev"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Product Information and Variants -->
+                <div class="col-md-6">
+                    <div class="product-info">
+                        <!-- 1. BASIC PRODUCT INFORMATION -->
+                        <!-- Product Name and Featured Badge -->
+                        <div class="product-header d-flex justify-content-between align-items-start">
+                            <h1 class="product-title">@Model.ProductName</h1>
+                            <div class="product-badges">
+                                @if (Model.Featured)
+                                {
+                                    <span class="badge bg-primary featured-badge" id="featured-badge">Nổi bật</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Product Rating -->
+                        <div class="product-rating mt-2">
+                            <div class="stars">
+                                @{
+                                    var fullStars = (int)Math.Floor(Model.AverageRating);
+                                    var hasHalfStar = Model.AverageRating - fullStars >= 0.5;
+                                }
+
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= fullStars)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    else if (i == fullStars + 1 && hasHalfStar)
+                                    {
+                                        <i class="fas fa-star-half-alt"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star"></i>
+                                    }
+                                }
+                                <span class="rating-count">(@Model.ReviewCount đánh giá)</span>
+                            </div>
+                        </div>
+
+                        <!-- Product Price Information -->
+                        <div class="product-price mt-3">
+                            <div class="price-container">
+                                <span class="current-price" id="current-price">@Model.GetFormattedPrice(Model.DiscountedPrice)</span>
+                                @if (Model.DiscountPercent > 0)
+                                {
+                                    <span class="original-price" id="original-price">@Model.GetFormattedPrice(Model.BasePrice)</span>
+                                    <span class="discount-badge" id="discount-badge">@Model.GetDiscountText()</span>
+                                }
+                            </div>
+                            @if (Model.DiscountPercent > 0)
+                            {
+                                <div class="price-note" id="price-saving">
+                                    Tiết kiệm: <span>@Model.GetSavingsText()</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Short Description -->
+                        <div class="short-description mt-3">
+                            <p id="product-description">
+                                @Model.Description
+                            </p>
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="my-4">
+
+                        <!-- 3. PRODUCT VARIANTS SELECTION -->
+                        <div class="product-variants">
+                            <!-- Color Selection -->
+                            @if (Model.ColorOptions.Any())
+                            {
+                                <div class="variant-group">
+                                    <label class="variant-label">
+                                        Màu sắc: <span class="selected-value" id="selected-color">
+                                            @Model.ColorOptions.First().ColorName
+                                        </span>
+                                    </label>
+                                    <div class="color-options">
+                                        @foreach (var color in Model.ColorOptions)
+                                        {
+                                            var isOutOfStock = !Model.ProductVariants.Any(v => v.ColorId == color.ColorId && v.Stock > 0);
+
+                                            <div class="color-option @(color == Model.ColorOptions.First() ? "active" : "") @(isOutOfStock ? "out-of-stock" : "")"
+                                                 data-color-id="@color.ColorId"
+                                                 data-color-name="@color.ColorName"
+                                                 style="background-color: @color.ColorCode;">
+                                                <i class="fas @(isOutOfStock ? "fa-times" : "fa-check")"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Size Selection -->
+                            @if (Model.SizeOptions.Any())
+                            {
+                                <div class="variant-group mt-4">
+                                    <label class="variant-label">
+                                        Kích thước: <span class="selected-value" id="selected-size">
+                                            @Model.SizeOptions.First().SizeName
+                                        </span>
+                                    </label>
+                                    <div class="size-options">
+                                        @foreach (var size in Model.SizeOptions)
+                                        {
+                                            var isOutOfStock = !Model.ProductVariants.Any(v => v.SizeId == size.SizeId && v.Stock > 0);
+
+                                            <div class="size-option @(size == Model.SizeOptions.First() ? "active" : "") @(isOutOfStock ? "out-of-stock" : "")"
+                                                 data-size-id="@size.SizeId"
+                                                 data-size-name="@size.SizeName">
+                                                @size.SizeName
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="size-guide">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
+                                            <i class="fas fa-ruler"></i> Hướng dẫn chọn size
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Material Selection -->
+                            @if (Model.MaterialOptions.Any())
+                            {
+                                <div class="variant-group mt-4">
+                                    <label class="variant-label">
+                                        Chất liệu: <span class="selected-value" id="selected-material">
+                                            @Model.MaterialOptions.First().MaterialName
+                                        </span>
+                                    </label>
+                                    <div class="material-options">
+                                        @foreach (var material in Model.MaterialOptions)
+                                        {
+                                            var variant = Model.ProductVariants.FirstOrDefault(v => v.MaterialId == material.MaterialId);
+                                            var additionalPrice = variant?.AdditionalPrice ?? 0;
+
+                                            <div class="material-option @(material == Model.MaterialOptions.First() ? "active" : "")"
+                                                 data-material-id="@material.MaterialId"
+                                                 data-material-name="@material.MaterialName">
+                                                @material.MaterialName
+                                                @if (additionalPrice > 0)
+                                                {
+                                                    <span class="additional-price">(+@Model.GetFormattedPrice(additionalPrice))</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Variant Details (SKU & Stock) -->
+                            <div class="variant-details mt-4">
+                                @{
+                                    // Get the default variant (first color, size, material)
+                                    var defaultVariant = Model.ProductVariants.FirstOrDefault(v =>
+                                    v.ColorId == Model.ColorOptions.FirstOrDefault()?.ColorId &&
+                                    v.SizeId == Model.SizeOptions.FirstOrDefault()?.SizeId &&
+                                    (Model.MaterialOptions.Count == 0 || v.MaterialId == Model.MaterialOptions.FirstOrDefault()?.MaterialId));
+
+                                    var defaultStock = defaultVariant?.Stock ?? 0;
+                                    var defaultSku = defaultVariant?.Sku ?? "N/A";
+                                }
+
+                                <div class="stock-status @(defaultStock > 0 ? "in-stock" : "out-of-stock")">
+                                    <i class="fas @(defaultStock > 0 ? "fa-check-circle" : "fa-times-circle")"></i>
+                                    @if (defaultStock > 0)
+                                    {
+                                        <span>Còn <span id="variant-stock">@defaultStock</span> sản phẩm</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Hết hàng</span>
+                                    }
+                                </div>
+                                <div class="sku-info">
+                                    SKU: <span id="variant-sku">@defaultSku</span>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Selection -->
+                            <div class="variant-group mt-4">
+                                <label class="variant-label">Số lượng:</label>
+                                <div class="quantity-selector">
+                                    <button class="btn-quantity-change" id="decrease-quantity">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="product-quantity" value="1" min="1" max="@defaultStock">
+                                    <button class="btn-quantity-change" id="increase-quantity">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Plain HTML version -->
+                            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                <button style="background-color: #ff4500; color: white; padding: 10px 20px; border-radius: 10px;">
+                                    <i class="fas fa-shopping-cart"></i> Thêm vào giỏ hàng
+                                </button>
+                                <button style="background-color: #0066ff; color: white; padding: 10px 20px; border-radius: 10px;">
+                                    <i class="fas fa-bolt"></i> Mua ngay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox Gallery Modal -->
+    <div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Model.ProductName</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="swiper lightbox-slider">
+                        <div class="swiper-wrapper">
+                            @foreach (var image in Model.ProductImages)
+                            {
+                                <div class="swiper-slide">
+                                    <img src="@image.ImageUrl" class="img-fluid" alt="@Model.ProductName">
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Lightbox Controls -->
+                        <div class="swiper-pagination lightbox-pagination"></div>
+                        <div class="swiper-button-next lightbox-button-next"></div>
+                        <div class="swiper-button-prev lightbox-button-prev"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Size Guide Modal -->
+    <div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Hướng dẫn chọn size</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Size</th>
+                                <th>Vai (cm)</th>
+                                <th>Ngực (cm)</th>
+                                <th>Dài áo (cm)</th>
+                                <th>Dài tay (cm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>S</td>
+                                <td>43</td>
+                                <td>96</td>
+                                <td>68</td>
+                                <td>60</td>
+                            </tr>
+                            <tr>
+                                <td>M</td>
+                                <td>45</td>
+                                <td>100</td>
+                                <td>70</td>
+                                <td>61</td>
+                            </tr>
+                            <tr>
+                                <td>L</td>
+                                <td>47</td>
+                                <td>104</td>
+                                <td>72</td>
+                                <td>62</td>
+                            </tr>
+                            <tr>
+                                <td>XL</td>
+                                <td>49</td>
+                                <td>108</td>
+                                <td>74</td>
+                                <td>63</td>
+                            </tr>
+                            <tr>
+                                <td>XXL</td>
+                                <td>51</td>
+                                <td>112</td>
+                                <td>76</td>
+                                <td>64</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products Section -->
+    <section class="related-products py-5 mt-4 bg-light">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2 class="section-title h2 mb-4">Sản phẩm liên quan</h2>
+                    <div class="section-divider"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                @if (Model.RelatedProducts != null && Model.RelatedProducts.Any())
+                {
+                    @foreach (var product in Model.RelatedProducts)
+                    {
+                        <div class="col-lg-3 col-md-6 col-12 mb-4">
+                            <div class="card product-card h-100 border-0 shadow-sm">
+                                <div class="position-relative product-img-container">
+                                    <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductId })">
+                                        <img src="@product.ImageUrl" alt="@product.ProductName"
+                                             class="card-img-top product-img"
+                                             onerror="this.src='/images/no-image.png'; this.onerror=null;">
+                                    </a>
+
+                                    @if (product.DiscountPercent > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-danger position-absolute top-0 end-0 mt-2 me-2">
+                                            -@product.DiscountPercent%
+                                        </span>
+                                    }
+
+                                    <div class="product-action-buttons">
+                                        <button type="button" class="btn btn-sm btn-outline-dark quick-view-btn"
+                                                data-product-id="@product.ProductId" title="Xem nhanh">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-dark add-to-wishlist-btn"
+                                                data-product-id="@product.ProductId" title="Yêu thích">
+                                            <i class="far fa-heart"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-dark add-to-cart-btn"
+                                                data-product-id="@product.ProductId" title="Thêm vào giỏ hàng">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="card-body text-center">
+                                    <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductId })" class="text-decoration-none">
+                                        <h5 class="card-title product-title mb-2">@product.ProductName</h5>
+                                    </a>
+
+                                    <div class="product-price mb-2">
+                                        @if (product.DiscountPercent > 0)
+                                        {
+                                            <span class="price-old me-2">@product.BasePrice.ToString("N0")₫</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="price-new">@product.BasePrice.ToString("N0")₫</span>
+                                        }
+                                    </div>
+
+                                    <div class="d-grid mt-3">
+                                        <a href="@Url.Action("ProductDetail", "Home", new { id = product.ProductId })"
+                                           class="btn btn-primary btn-sm">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted">Không có sản phẩm tương tự.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Reviews Section -->
+    <section class="product-reviews-section py-5 bg-light">
+        <div class="container-wide">
+            <div class="section-title mb-4 d-flex justify-content-between align-items-center">
+                <h2>Đánh giá sản phẩm</h2>
+                <button class="btn btn-primary" id="write-review-btn" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                    <i class="fas fa-pen me-2"></i> Viết đánh giá
+                </button>
+            </div>
+
+            <div class="row">
+                <!-- Review Summary Column -->
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="review-summary bg-white p-4 rounded shadow-sm">
+                        <div class="average-rating text-center mb-4">
+                            <div class="rating-score">@Model.AverageRating.ToString("0.0")</div>
+                            <div class="rating-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= fullStars)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    else if (i == fullStars + 1 && hasHalfStar)
+                                    {
+                                        <i class="fas fa-star-half-alt"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star"></i>
+                                    }
+                                }
+                            </div>
+                            <div class="rating-count">Dựa trên @Model.ReviewCount đánh giá</div>
+                        </div>
+
+                        <div class="rating-distribution">
+                            @for (int i = 5; i >= 1; i--)
+                            {
+                                var ratingCount = Model.RatingDistribution.ContainsKey(i) ? Model.RatingDistribution[i] : 0;
+                                var percentage = Model.GetRatingPercentage(i);
+                                string barClass = i >= 4 ? "bg-success" : (i == 3 ? "bg-warning" : "bg-danger");
+
+                                <div class="rating-bar-item">
+                                    <div class="rating-label">@i <i class="fas fa-star"></i></div>
+                                    <div class="progress">
+                                        <div class="progress-bar @barClass" role="progressbar" style="width: @percentage%"></div>
+                                    </div>
+                                    <div class="rating-count">@ratingCount</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review List Column -->
+                <div class="col-lg-8">
+                    <div class="review-filter-bar bg-white p-3 rounded shadow-sm mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="filter-title">
+                                <h6 class="mb-0">@Model.ReviewCount Đánh giá</h6>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="filter-label me-2">Lọc theo:</div>
+                                <select class="form-select form-select-sm me-2" id="rating-filter">
+                                    <option value="all" selected>Tất cả sao</option>
+                                    <option value="5">5 Sao</option>
+                                    <option value="4">4 Sao</option>
+                                    <option value="3">3 Sao</option>
+                                    <option value="2">2 Sao</option>
+                                    <option value="1">1 Sao</option>
+                                </select>
+                                <select class="form-select form-select-sm" id="sort-filter">
+                                    <option value="newest" selected>Mới nhất</option>
+                                    <option value="oldest">Cũ nhất</option>
+                                    <option value="helpful">Hữu ích nhất</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Reviews -->
+                    <div class="review-items">
+                        @foreach (var review in Model.Reviews.Take(3))
+                        {
+                            <div class="review-item bg-white p-4 rounded shadow-sm mb-3">
+                                <div class="review-header d-flex justify-content-between mb-3">
+                                    <div class="d-flex">
+                                        <div class="reviewer-avatar">
+                                            <img src="https://via.placeholder.com/50" alt="@review.User?.FullName" class="rounded-circle">
+                                        </div>
+                                        <div class="reviewer-info ms-3">
+                                            <h6 class="reviewer-name mb-0">@(review.User?.FullName ?? "Khách hàng")</h6>
+                                            <div class="review-date text-muted">@review.CreatedAt?.ToString("dd/MM/yyyy")</div>
+                                            <div class="review-rating">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= review.Rating)
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="verified-purchase">
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i> Đã mua hàng
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="review-content">
+                                    <p class="review-text">@review.Comment</p>
+                                    
+                                </div>
+                                <div class="review-footer d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                    <div class="helpful-votes">
+                                        
+                                        <button class="btn btn-sm btn-outline-secondary ms-2">
+                                            <i class="far fa-comment me-1"></i> Trả lời
+                                        </button>
+                                    </div>
+                                    <div class="review-share">
+                                        <button class="btn btn-sm btn-link text-muted">
+                                            <i class="fas fa-share-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.Reviews.Count > 3)
+                        {
+                            <!-- Load More Reviews Button -->
+                            <div class="text-center mt-4">
+                                <button class="btn btn-outline-primary" id="load-more-reviews">
+                                    Xem thêm đánh giá <i class="fas fa-chevron-down ms-2"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+  
+
+    <!-- Review Photo Modal -->
+    <div class="modal fade" id="reviewPhotoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Hình ảnh đánh giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="" id="review-photo-large" class="img-fluid" alt="Review Photo">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer content will be loaded here -->
+    <div id="footer-container"></div>
+
+    <!-- jQuery, Bootstrap and other scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    <!-- Product Detail Page JavaScript -->
+    <script>
+                $(document).ready(function() {
+            // Quick view functionality for related products
+            $('.quick-view-btn').click(function() {
+                var productId = $(this).data('product-id');
+                // Open quick view modal with AJAX
+                $.ajax({
+                    url: '/Home/QuickView',
+                    data: { id: productId },
+                    type: 'GET',
+                    success: function(response) {
+                        $('#quickViewModal .modal-content').html(response);
+                        $('#quickViewModal').modal('show');
+                    },
+                    error: function() {
+                        alert('Không thể tải dữ liệu sản phẩm. Vui lòng thử lại sau.');
+                    }
+                });
+            });
+
+            // Add to wishlist functionality
+            $('.add-to-wishlist-btn').click(function() {
+                var productId = $(this).data('product-id');
+                $.ajax({
+                    url: '/Home/AddToWishlist',
+                    data: { productId: productId },
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            toastr.success('Đã thêm sản phẩm vào danh sách yêu thích');
+                            // Update heart icon to filled
+                            $(this).find('i').removeClass('far').addClass('fas');
+                        } else {
+                            toastr.warning(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+                    }
+                });
+            });
+
+            // Add to cart functionality
+            $('.add-to-cart-btn').click(function() {
+                var productId = $(this).data('product-id');
+
+                $.ajax({
+                    url: '/Home/AddToCart',
+                    data: { productId: productId, quantity: 1 },
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            toastr.success('Đã thêm sản phẩm vào giỏ hàng');
+                            // Update cart count in header
+                            updateCartCount(response.cartCount);
+                        } else {
+                            toastr.warning(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Đã xảy ra lỗi. Vui lòng thử lại sau.');
+                    }
+                });
+            });
+
+            function updateCartCount(count) {
+                // Update the cart counter in the header
+                var $cartCounter = $('#cartCounter');
+                $cartCounter.text(count);
+
+                // Animate the counter
+                $cartCounter.addClass('animate-count');
+                setTimeout(function() {
+                    $cartCounter.removeClass('animate-count');
+                }, 700);
+            }
+        });
+                document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, checking product actions visibility');
+            const actions = document.querySelector('.product-actions');
+            if (actions) {
+                console.log('Found product actions:', actions);
+                console.log('Display style:', window.getComputedStyle(actions).display);
+                console.log('Visibility:', window.getComputedStyle(actions).visibility);
+                console.log('Height:', window.getComputedStyle(actions).height);
+            } else {
+                console.error('Product actions element not found in DOM');
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize thumbnail slider
+            var thumbnailSwiper = new Swiper('.thumbnail-slider', {
+                slidesPerView: 4,
+                spaceBetween: 10,
+                navigation: {
+                    nextEl: '.thumbnail-button-next',
+                    prevEl: '.thumbnail-button-prev',
+                },
+                breakpoints: {
+                    576: {
+                        slidesPerView: 5,
+                    }
+                }
+            });
+
+            // Initialize lightbox slider
+            var lightboxSwiper = new Swiper('.lightbox-slider', {
+                slidesPerView: 1,
+                spaceBetween: 0,
+                pagination: {
+                    el: '.lightbox-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.lightbox-button-next',
+                    prevEl: '.lightbox-button-prev',
+                },
+            });
+
+            // Open gallery modal and set correct slide
+            document.getElementById('open-gallery').addEventListener('click', function() {
+                var modal = new bootstrap.Modal(document.getElementById('lightboxModal'));
+                modal.show();
+
+                // Find active thumbnail to determine which slide to show
+                var activeThumb = document.querySelector('.thumbnail.active');
+                if (activeThumb) {
+                    var slideIndex = parseInt(activeThumb.getAttribute('data-img-id')) - 1;
+                    lightboxSwiper.slideTo(slideIndex, 0);
+                }
+            });
+
+            // Thumbnail click handler
+            document.querySelectorAll('.thumbnail').forEach(function(thumbnail) {
+                thumbnail.addEventListener('click', function() {
+                    // Update active class
+                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update main image
+                    var mainImage = document.getElementById('main-product-image');
+                    mainImage.src = this.getAttribute('data-img-src');
+                });
+            });
+
+            // Color selection
+            document.querySelectorAll('.color-option:not(.out-of-stock)').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('selected-color').textContent = this.getAttribute('data-color-name');
+                    updateVariantDetails();
+                });
+            });
+
+            // Size selection
+            document.querySelectorAll('.size-option:not(.out-of-stock)').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.size-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('selected-size').textContent = this.getAttribute('data-size-name');
+                    updateVariantDetails();
+                });
+            });
+
+            // Material selection
+            document.querySelectorAll('.material-option').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.material-option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('selected-material').textContent = this.getAttribute('data-material-name');
+                    updateVariantDetails();
+                });
+            });
+
+            // Quantity adjustment
+            document.getElementById('decrease-quantity').addEventListener('click', function() {
+                var input = document.getElementById('product-quantity');
+                if (input.value > 1) {
+                    input.value = parseInt(input.value) - 1;
+                }
+            });
+
+            document.getElementById('increase-quantity').addEventListener('click', function() {
+                var input = document.getElementById('product-quantity');
+                var max = parseInt(input.getAttribute('max'));
+                if (parseInt(input.value) < max) {
+                    input.value = parseInt(input.value) + 1;
+                }
+            });
+
+            // Update variant details (SKU and stock)
+            function updateVariantDetails() {
+                // Get selected variants
+                var colorId = document.querySelector('.color-option.active')?.getAttribute('data-color-id');
+                var sizeId = document.querySelector('.size-option.active')?.getAttribute('data-size-id');
+                var materialId = document.querySelector('.material-option.active')?.getAttribute('data-material-id');
+
+                // In a real application, you would make an AJAX call to get variant info based on selections
+                // For this example, I'm using static data
+
+                // Mock data - this would come from your AJAX call
+        var variants = @Json.Serialize(Model.ProductVariantDtos);
+                // Find matching variant based on selections
+                var matchedVariant = variants.find(function(v) {
+                    var materialMatch = !materialId || v.materialId == materialId;
+                    return v.colorId == colorId && v.sizeId == sizeId && materialMatch;
+                });
+
+                if (matchedVariant) {
+                    // Update stock info
+                    var stockDisplay = document.querySelector('.stock-status');
+                    var stockSpan = document.getElementById('variant-stock');
+
+                    if (matchedVariant.stock > 0) {
+                        stockDisplay.classList.remove('out-of-stock');
+                        stockDisplay.classList.add('in-stock');
+                        stockDisplay.innerHTML = '<i class="fas fa-check-circle"></i> Còn <span id="variant-stock">' + matchedVariant.stock + '</span> sản phẩm';
+
+                        // Update quantity input max
+                        document.getElementById('product-quantity').setAttribute('max', matchedVariant.stock);
+                        var currentQty = parseInt(document.getElementById('product-quantity').value);
+                        if (currentQty > matchedVariant.stock) {
+                            document.getElementById('product-quantity').value = matchedVariant.stock;
+                        }
+                    } else {
+                        stockDisplay.classList.remove('in-stock');
+                        stockDisplay.classList.add('out-of-stock');
+                        stockDisplay.innerHTML = '<i class="fas fa-times-circle"></i> Hết hàng';
+                        document.getElementById('product-quantity').setAttribute('max', '0');
+                        document.getElementById('product-quantity').value = '0';
+                    }
+
+                    // Update SKU
+                    document.getElementById('variant-sku').textContent = matchedVariant.sku || 'N/A';
+
+                    // Update price if there's additional price for this variant
+                    var basePrice = @Model.DiscountedPrice;
+                    var additionalPrice = matchedVariant.additionalPrice || 0;
+                    var totalPrice = basePrice + additionalPrice;
+
+                    document.getElementById('current-price').textContent = formatPrice(totalPrice);
+                } else {
+                    // No matching variant found
+                    var stockDisplay = document.querySelector('.stock-status');
+                    stockDisplay.classList.remove('in-stock');
+                    stockDisplay.classList.add('out-of-stock');
+                    stockDisplay.innerHTML = '<i class="fas fa-times-circle"></i> Không có sản phẩm phù hợp với lựa chọn';
+                    document.getElementById('variant-sku').textContent = 'N/A';
+                }
+            }
+
+            // Format price helper
+            function formatPrice(price) {
+                return new Intl.NumberFormat('vi-VN', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(price) + '₫';
+            }
+
+            // Review star rating in modal
+            document.querySelectorAll('.rating-star').forEach(function(star) {
+                star.addEventListener('click', function() {
+                    var rating = this.getAttribute('data-rating');
+                    document.getElementById('rating-value').value = rating;
+
+                    // Update stars display
+                    document.querySelectorAll('.rating-star').forEach(function(s) {
+                        if (s.getAttribute('data-rating') <= rating) {
+                            s.classList.remove('far');
+                            s.classList.add('fas');
+                        } else {
+                            s.classList.remove('fas');
+                            s.classList.add('far');
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseover', function() {
+                    var rating = this.getAttribute('data-rating');
+
+                    document.querySelectorAll('.rating-star').forEach(function(s) {
+                        if (s.getAttribute('data-rating') <= rating) {
+                            s.classList.remove('far');
+                            s.classList.add('fas');
+                        } else {
+                            s.classList.remove('fas');
+                            s.classList.add('far');
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseout', function() {
+                    var currentRating = document.getElementById('rating-value').value;
+
+                    document.querySelectorAll('.rating-star').forEach(function(s) {
+                        if (s.getAttribute('data-rating') <= currentRating) {
+                            s.classList.remove('far');
+                            s.classList.add('fas');
+                        } else {
+                            s.classList.remove('fas');
+                            s.classList.add('far');
+                        }
+                    });
+                });
+            });
+
+            // Review photo upload handling
+            document.querySelector('.dropzone-container').addEventListener('click', function() {
+                document.getElementById('review-images').click();
+            });
+
+            document.getElementById('review-images').addEventListener('change', function(e) {
+                var files = e.target.files;
+                var previewContainer = document.querySelector('.preview-images');
+
+                // Clear existing previews
+                previewContainer.innerHTML = '';
+
+                for (var i = 0; i < Math.min(files.length, 5); i++) {
+                    var file = files[i];
+                    var reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        var imgCol = document.createElement('div');
+                        imgCol.className = 'col-4 mb-2';
+
+                        var imgPreview = document.createElement('div');
+                        imgPreview.className = 'image-preview position-relative';
+
+                        var img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail';
+                        img.style.height = '100px';
+                        img.style.objectFit = 'cover';
+
+                        var removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.style.width = '24px';
+                        removeBtn.style.height = '24px';
+                        removeBtn.style.padding = '0';
+                        removeBtn.style.lineHeight = '24px';
+
+                        removeBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            imgCol.remove();
+                        });
+
+                        imgPreview.appendChild(img);
+                        imgPreview.appendChild(removeBtn);
+                        imgCol.appendChild(imgPreview);
+                        previewContainer.appendChild(imgCol);
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Show review photo in modal
+            document.querySelectorAll('[data-bs-target="#reviewPhotoModal"]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    var imgSrc = this.getAttribute('data-img');
+                    document.getElementById('review-photo-large').src = imgSrc;
+                });
+            });
+
+            // Submit review
+            document.getElementById('submit-review').addEventListener('click', function() {
+                // Validate form
+                var form = document.getElementById('review-form');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                // Get form data
+                var rating = document.getElementById('rating-value').value;
+                var title = document.getElementById('review-title').value;
+                var name = document.getElementById('reviewer-name').value;
+                var content = document.getElementById('review-content').value;
+                var productId = document.getElementById('product-id').value;
+                var isVerified = document.getElementById('verify-purchase').checked;
+
+                // Get image files
+                var imageFiles = document.getElementById('review-images').files;
+
+                // Here you would send data to server via AJAX
+                // For now, just show success message and close modal
+
+                alert('Cảm ơn bạn đã gửi đánh giá! Đánh giá của bạn sẽ được hiển thị sau khi được phê duyệt.');
+
+                // Close modal
+                var modal = bootstrap.Modal.getInstance(document.getElementById('writeReviewModal'));
+                modal.hide();
+
+                // Reset form
+                form.reset();
+                document.querySelectorAll('.rating-star').forEach(function(s) {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                });
+                document.querySelector('.preview-images').innerHTML = '';
+            });
+
+            // Load more reviews
+            document.getElementById('load-more-reviews').addEventListener('click', function() {
+                // In a real app, you would load more reviews via AJAX
+                // For this demo, just hide the button
+                this.textContent = 'Đang tải...';
+                this.disabled = true;
+
+                setTimeout(() => {
+                    this.style.display = 'none';
+                }, 1000);
+            });
+
+            // Initialize with default variant
+            updateVariantDetails();
+        });
+    </script>
+</body>
+
+</html>
