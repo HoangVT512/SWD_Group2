@@ -1,0 +1,156 @@
+﻿@model WebApplication1.Models.User
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile navigation dropdown -->
+        <div class="col-12 mb-4">
+            <form id="profileNavForm" class="d-flex justify-content-end">
+                <div class="d-flex align-items-center">
+                    <label for="profileAction" class="me-2">Go to:</label>
+                    <select class="form-select form-select-sm me-2" id="profileAction" style="width: auto;">
+                        <option value="ViewProfile">View Profile</option>
+                        <option value="EditProfile" selected>Edit Profile</option>
+                        <option value="Settings">Settings</option>
+                    </select>
+                    <button type="button" id="profileNavButton" class="btn btn-sm btn-outline-primary">Go</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" alt="avatar"
+                         class="rounded-circle img-fluid" style="width: 150px;">
+                    <h5 class="my-3">@Model?.FullName</h5>
+                    <p class="text-muted mb-1">Web Developer</p>
+                    <p class="text-muted mb-4">@Model?.Address</p>
+
+                    <div class="d-flex justify-content-center mb-2">
+                        <button type="button" class="btn btn-outline-primary ms-1">
+                            <i class="fas fa-camera me-2"></i>Change Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Edit Profile Information</h5>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    @if (Model != null)
+                    {
+                        <!-- Use the more explicit form action URL -->
+                        <form id="editProfileForm" method="post" action="/ViewProfile/Edit">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="UserId" value="@Model.UserId" />
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label for="FullName" class="form-label">Full Name</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <input type="text" id="FullName" name="FullName" class="form-control"
+                                           value="@Model.FullName" required />
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label for="Email" class="form-label">Email</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <input type="email" id="Email" name="Email" class="form-control"
+                                           value="@Model.Email" required />
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label for="Phone" class="form-label">Phone</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <input type="text" id="Phone" name="Phone" class="form-control"
+                                           value="@Model.Phone" required />
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <label for="Address" class="form-label">Address</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <textarea id="Address" name="Address" class="form-control"
+                                              rows="3" required>@Model.Address</textarea>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <a href="@Url.Action("View", "ViewProfile", new { id = Model.UserId })" class="btn btn-outline-secondary me-2">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <p>User not found!</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navigation dropdown handler
+    document.getElementById("profileNavButton").addEventListener("click", function () {
+        var action = document.getElementById("profileAction").value;
+        var userId = @Model.UserId;
+
+        var actionUrl = "";
+        if (action === "ViewProfile") {
+            actionUrl = "/ViewProfile/View/" + userId;
+        } else if (action === "EditProfile") {
+            actionUrl = "/ViewProfile/Edit/" + userId;
+        } else if (action === "Settings") {
+            actionUrl = "/ViewProfile/Settings";
+        }
+
+        window.location.href = actionUrl;
+    });
+
+    // For debugging purposes
+    document.getElementById("editProfileForm").addEventListener("submit", function (event) {
+        console.log("Form is being submitted");
+        // Don't prevent default - let the form submit normally
+    });
+</script>

@@ -28,6 +28,39 @@
                 </div>
             </div>
         </div>
+    <form id="profileForm" method="get">
+        <select class="currency-selector" id="currencySelector" name="action">
+            <option value="ViewProfile">View Profile</option>
+            <option value="EditProfile">Edit Profile</option>
+            <option value="Settings">Settings</option>
+        </select>
+        <button type="submit">Go</button>
+    </form>
+
+    <script>
+        document.getElementById("profileForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get the selected action
+            var action = document.getElementById("currencySelector").value;
+
+            // Assuming you have the user ID available, you can dynamically build the URL
+            var userId = 1; // Example user ID, replace with dynamic value
+
+            // Determine the action and redirect accordingly
+            var actionUrl = "";
+            if (action === "ViewProfile") {
+                actionUrl = "/ViewProfile/View?id=" + userId;  // Redirect to View Profile
+            } else if (action === "EditProfile") {
+                actionUrl = "/ViewProfile/Edit?id=" + userId;  // Redirect to Edit Profile
+            } else if (action === "Settings") {
+                actionUrl = "/Settings";  // Redirect to Settings page (if applicable)
+            }
+
+            // Redirect to the selected action URL
+            window.location.href = actionUrl;
+        });
+    </script>
 
         <!-- Main Navigation Header -->
         <nav class="navbar navbar-expand-lg navbar-light py-3 main-header">
