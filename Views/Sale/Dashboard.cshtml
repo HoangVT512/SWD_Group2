@@ -1,0 +1,582 @@
+﻿@using Newtonsoft.Json
+@model WebApplication1.ViewModel.DashboardViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Sales Dashboard";
+
+    // Current user and time info
+    var currentUser = "annthe176161";
+    var currentDateTime = "2025-03-26 08:23:39";
+
+    var statuses = new Dictionary<string, string>
+    {
+        { "Pending", "bg-warning" },
+        { "Processing", "bg-info" },
+        { "Shipped", "bg-primary" },
+        { "Completed", "bg-success" },
+        { "Cancelled", "bg-danger" }
+    };
+
+    // Fix JSON data preparation - ensure no duplicate values and properly encoded
+    var salesTrendJson = JsonConvert.SerializeObject(Model.SalesTrend ?? new List<WebApplication1.ViewModel.DailySalesViewModel>());
+    var statusDistJson = JsonConvert.SerializeObject(Model.OrderStatusDistribution ?? new List<WebApplication1.ViewModel.OrderStatusCountViewModel>());
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebApplication1</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/sale-dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WebApplication1.styles.css" asp-append-version="true" />
+    <style>
+        /* User info bar styling */
+        .user-info-bar {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #4e73df;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <!-- User info bar -->
+    <div class="user-info-bar">
+        <div class="user-info">
+            <div class="user-avatar">
+                @(currentUser.Length >= 2 ? currentUser.Substring(0, 2).ToUpper() : "US")
+            </div>
+            <div>
+                <strong>@currentUser</strong>
+                <span class="badge bg-primary ms-2">Sales Manager</span>
+            </div>
+        </div>
+        <div class="timestamp">
+            <i class="far fa-clock me-1"></i> @currentDateTime UTC
+        </div>
+    </div>
+
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-6">
+                    <h1>Sales Dashboard</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- IMPORTANT: Fix the hidden input fields for JSON data -->
+            <input type="hidden" id="salesTrendData" value="@Html.Raw(salesTrendJson.Replace("\"", "&quot;"))" />
+            <input type="hidden" id="orderStatusData" value="@Html.Raw(statusDistJson.Replace("\"", "&quot;"))" />
+
+            <!-- Dashboard Layout -->
+            <div class="dashboard-layout">
+                <!-- Filter Section -->
+                <div class="filter-area">
+                    <div class="filter-section">
+                        <form asp-action="FilterDashboard" method="post" class="d-flex flex-wrap w-100" id="filterForm">
+                            <div class="form-group">
+                                <label>Start Date</label>
+                                <input type="date" name="startDate" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="form-group">
+                                <label>End Date</label>
+                                <input type="date" name="endDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="form-group">
+                                <label>Period</label>
+                                <select name="period" class="form-control">
+                                    @if (Model.Period == "week")
+                                    {
+                                        <option value="week" selected>Week</option>
+                                        <option value="month">Month</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="week">Week</option>
+                                        <option value="month" selected>Month</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary w-100" style="margin-top:22px">Apply Filter</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Stats Area -->
+                <div class="stats-area">
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span>Total Orders</span>
+                                <span class="badge @(Model.Statistics.OrderGrowth >= 0 ? "bg-success" : "bg-danger")">
+                                    @(Model.Statistics.OrderGrowth >= 0 ? "+" : "")@Math.Round(Model.Statistics.OrderGrowth, 1)%
+                                </span>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-icon text-info">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="stat-data">
+                                    <h3>@Model.Statistics.TotalOrders</h3>
+                                    <p>From previous period</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span>Total Sales</span>
+                                <span class="badge @(Model.Statistics.SalesGrowth >= 0 ? "bg-success" : "bg-danger")">
+                                    @(Model.Statistics.SalesGrowth >= 0 ? "+" : "")@Math.Round(Model.Statistics.SalesGrowth, 1)%
+                                </span>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-icon text-success">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="stat-data">
+                                    <h3>@Model.Statistics.TotalSales.ToString("C")</h3>
+                                    <p>From previous period</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span>Avg Order Value</span>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-icon text-warning">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-data">
+                                    <h3>@Model.Statistics.AverageOrderValue.ToString("C")</h3>
+                                    <p>Per order</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <span>Completed</span>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-icon text-danger">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stat-data">
+                                    <h3>@Model.Statistics.CompletedOrders</h3>
+                                    <p>@(Math.Round((decimal)Model.Statistics.CompletedOrders / (Model.Statistics.TotalOrders == 0 ? 1 : Model.Statistics.TotalOrders) * 100, 1))% rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Trend Chart -->
+                <div class="trend-area">
+                    <div class="chart-card">
+                        <div class="chart-card-header">Sales Trend</div>
+                        <div class="chart-card-body" id="salesTrendChartContainer">
+                            <canvas id="salesTrendChart"></canvas>
+                            <!-- Thêm debug info -->
+                            @if (Model.SalesTrend == null || !Model.SalesTrend.Any())
+                            {
+                                <div class="alert alert-info text-center">No sales data available for the selected period</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Status Distribution -->
+                <div class="distribution-area">
+                    <div class="chart-card">
+                        <div class="chart-card-header">Status Distribution</div>
+                        <div class="chart-card-body" id="orderStatusChartContainer">
+                            <canvas id="orderStatusChart"></canvas>
+                            <!-- Thêm debug info -->
+                            @if (Model.OrderStatusDistribution == null || !Model.OrderStatusDistribution.Any())
+                            {
+                                <div class="alert alert-info text-center">No status distribution data available</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders Table -->
+                <div class="orders-area">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <span>Recent Orders</span>
+                            <a href="/Sale/Orders" class="btn btn-primary">View All Orders</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th style="width: 100px">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td>#@order.OrderId</td>
+                                            <td>@(order.User?.FullName ?? "Guest")</td>
+                                            <td>@order.OrderDate?.ToString("dd/MM/yyyy")</td>
+                                            <td>@order.TotalAmount.ToString("C")</td>
+                                            <td>
+                                                <span class="badge @(statuses.ContainsKey(order.Status) ? statuses[order.Status] : "bg-secondary")">
+                                                    @(order.Status ?? "N/A")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (order.Payment != null)
+                                                {
+                                                    <span class="@(order.Payment.PaymentStatus == "Completed" ? "text-success" : "text-warning")">
+                                                        @order.Payment.PaymentMethod (@order.Payment.PaymentStatus)
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-danger">No Payment</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="/Sale/OrderDetails/@order.OrderId" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Details Modals -->
+    @foreach (var order in Model.RecentOrders)
+    {
+        <div class="modal fade" id="orderDetails-@order.OrderId" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Order #@order.OrderId Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <!-- Modal body content remains the same -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <a href="/Sale/Orders/Edit/@order.OrderId" class="btn btn-primary">Edit Order</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Scripts Section -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard script loaded');
+
+            try {
+                // Get data from hidden fields with better error handling
+                const salesTrendDataElem = document.getElementById('salesTrendData');
+                const orderStatusDataElem = document.getElementById('orderStatusData');
+
+                // Debug output to console
+                if (salesTrendDataElem) console.log('Sales data element found');
+                if (orderStatusDataElem) console.log('Status data element found');
+
+                // Parse sales trend data with robust error handling
+                        let salesData = [];
+        if (salesTrendDataElem && salesTrendDataElem.value) {
+            try {
+                salesData = JSON.parse(salesTrendDataElem.value);
+                console.log('Sales data parsed successfully:', salesData);
+            } catch (error) {
+                console.error('Error parsing sales data:', error);
+            }
+        }
+
+
+                // Parse order status data with robust error handling
+                let statusData = [];
+                if (orderStatusDataElem && orderStatusDataElem.value) {
+                    try {
+                        const decodedValue = orderStatusDataElem.value
+                            .replace(/&quot;/g, '"'); // Replace HTML entities
+                        statusData = JSON.parse(decodedValue);
+                        console.log('Status data parsed successfully:', statusData);
+                    } catch (error) {
+                        console.error('Error parsing status data:', error);
+                        console.log('Raw status data value:', orderStatusDataElem.value);
+                    }
+                } else {
+                    console.warn('No order status data available');
+                }
+
+                // Initialize charts with data validation
+                if (salesData && salesData.length > 0) {
+                    initializeSalesChart(salesData);
+                } else {
+                    console.warn('No sales data available for chart');
+                    document.getElementById('salesTrendChartContainer').innerHTML =
+                        '<div class="alert alert-info text-center my-5">Không có dữ liệu doanh thu cho khoảng thời gian đã chọn</div>';
+                }
+
+                if (statusData && statusData.length > 0) {
+                    initializeStatusChart(statusData);
+                } else {
+                    console.warn('No status data available for chart');
+                    document.getElementById('orderStatusChartContainer').innerHTML =
+                        '<div class="alert alert-info text-center my-5">Không có dữ liệu phân phối trạng thái</div>';
+                }
+            } catch (error) {
+                console.error('Error during chart initialization:', error);
+            }
+
+            // Form loading effect
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                filterForm.addEventListener('submit', function() {
+                    document.body.insertAdjacentHTML(
+                        'beforeend',
+                        '<div class="loading-overlay"><div class="spinner-border text-primary"></div></div>'
+                    );
+                });
+            }
+        });
+
+        // Function to initialize sales trend chart
+        function initializeSalesChart(salesData) {
+            const ctx = document.getElementById('salesTrendChart');
+            if (!ctx) {
+                console.error('Sales chart canvas not found');
+                return;
+            }
+
+            // Avoid rendering if container is hidden or invisible
+            if (ctx.offsetParent === null) {
+                console.warn('Chart container is not visible, delaying rendering');
+                setTimeout(() => initializeSalesChart(salesData), 100);
+                return;
+            }
+
+            const periodInfo = getPeriodFromURL();
+
+            // Format labels based on period
+            const labels = salesData.map(function(item) {
+                if (!item.date) return '';
+
+                try {
+                    const date = new Date(item.date);
+                    if (isNaN(date.getTime())) return '';
+
+                    if (periodInfo === 'month' && item.weekNumber) {
+                        return 'Tuần ' + item.weekNumber;
+                    } else {
+                        return `${date.getDate()}/${date.getMonth() + 1}`;
+                    }
+                } catch (e) {
+                    console.error('Error formatting date:', e);
+                    return '';
+                }
+            });
+
+            const salesValues = salesData.map(item => item.sales || 0);
+            const orderCounts = salesData.map(item => item.orderCount || 0);
+
+            console.log('Creating sales chart with labels:', labels);
+            console.log('Sales values:', salesValues);
+            console.log('Order counts:', orderCounts);
+
+            // Create the chart with a new instance
+            const salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Doanh thu',
+                            data: salesValues,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Số đơn hàng',
+                            data: orderCounts,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Doanh thu'
+                            }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Số đơn hàng'
+                            }
+                        }
+                    }
+                }
+            });
+
+            console.log('Sales chart initialized successfully');
+        }
+
+        // Function to initialize status distribution chart
+        function initializeStatusChart(statusData) {
+            const ctx = document.getElementById('orderStatusChart');
+            if (!ctx) {
+                console.error('Status chart canvas not found');
+                return;
+            }
+
+            // Avoid rendering if container is hidden or invisible
+            if (ctx.offsetParent === null) {
+                console.warn('Chart container is not visible, delaying rendering');
+                setTimeout(() => initializeStatusChart(statusData), 100);
+                return;
+            }
+
+            const statusLabels = statusData.map(item => item.status || 'N/A');
+            const statusCounts = statusData.map(item => item.count || 0);
+
+            const backgroundColors = [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)'
+            ];
+
+            console.log('Creating status chart with labels:', statusLabels);
+            console.log('Status counts:', statusCounts);
+
+            // Create the chart with a new instance
+            const statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusCounts,
+                        backgroundColor: backgroundColors.slice(0, statusLabels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 8,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            console.log('Status chart initialized successfully');
+        }
+
+        // Helper function to get period from URL
+        function getPeriodFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('period') || 'week';
+        }
+    </script>
+</body>
+</html>
